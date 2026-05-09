@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redstone Terrain Designer - マインクラフト整地ツール</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- ヘッダー -->
+        <header class="header">
+            <div class="header-content">
+                <h1>🎮 Redstone Terrain Designer</h1>
+                <p class="subtitle">マインクラフト統合版 Realms 対応 Redstone 自動整地設計ツール</p>
+                <div class="badge-group">
+                    <span class="badge badge-success">✓ Realms 対応</span>
+                    <span class="badge badge-info">✓ コマンド不要</span>
+                    <span class="badge badge-warning">✓ 完全安全</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- メインコンテンツ -->
+        <main class="main">
+            <!-- 左パネル：入力フォーム -->
+            <section class="input-panel">
+                <h2>📝 設定を入力</h2>
+
+                <!-- 座標入力 -->
+                <div class="form-group">
+                    <h3>📍 整地エリアの座標</h3>
+                    
+                    <div class="coordinate-group">
+                        <div class="input-wrapper">
+                            <label>X1（開始）</label>
+                            <input type="number" id="x1" value="0" placeholder="0">
+                        </div>
+                        <div class="input-wrapper">
+                            <label>Z1（開始）</label>
+                            <input type="number" id="z1" value="0" placeholder="0">
+                        </div>
+                    </div>
+
+                    <div class="coordinate-group">
+                        <div class="input-wrapper">
+                            <label>X2（終了）</label>
+                            <input type="number" id="x2" value="32" placeholder="32">
+                        </div>
+                        <div class="input-wrapper">
+                            <label>Z2（終了）</label>
+                            <input type="number" id="z2" value="32" placeholder="32">
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        💡 例：32×32 の整地エリア = 1024 ブロック
+                    </div>
+                </div>
+
+                <!-- 掘り下げ設定 -->
+                <div class="form-group">
+                    <h3>⬇️ 掘り下げ設定</h3>
+                    
+                    <div class="input-wrapper">
+                        <label>掘り下げる深さ（ブロック）</label>
+                        <input type="number" id="depth" value="5" min="1" max="50">
+                        <small>1～50 ブロック</small>
+                    </div>
+                </div>
+
+                <!-- 積み上げ設定 -->
+                <div class="form-group">
+                    <h3>⬆️ 積み上げ設定</h3>
+                    
+                    <div class="input-wrapper">
+                        <label>積み上げる高さ（ブロック）</label>
+                        <input type="number" id="buildHeight" value="3" min="1" max="50">
+                        <small>1～50 ブロック</small>
+                    </div>
+
+                    <div class="input-wrapper">
+                        <label>積み上げるブロック種類</label>
+                        <select id="blockType">
+                            <option value="dirt">🟫 土</option>
+                            <option value="grass_block">🟢 草ブロック</option>
+                            <option value="stone">⬜ 石</option>
+                            <option value="cobblestone">⬜ 丸石</option>
+                            <option value="sand">🟨 砂</option>
+                            <option value="gravel">⬜ 砂利</option>
+                            <option value="concrete">⬜ コンクリート</option>
+                            <option value="oak_wood">🟫 オークの木材</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 回路スピード設定 -->
+                <div class="form-group">
+                    <h3>⚡ 回路スピード</h3>
+                    
+                    <div class="input-wrapper">
+                        <label>処理速度</label>
+                        <select id="speed">
+                            <option value="slow">🐢 遅い（安定、推奨）</option>
+                            <option value="normal" selected>⚙️ 通常</option>
+                            <option value="fast">🐇 速い</option>
+                            <option value="ultra">⚡ 超高速</option>
+                        </select>
+                        <small>遅い方が安定性が高いです</small>
+                    </div>
+                </div>
+
+                <!-- ボタン -->
+                <div class="button-group">
+                    <button id="generateBtn" class="btn btn-primary">🎨 設計図を生成</button>
+                    <button id="resetBtn" class="btn btn-secondary">🔄 リセット</button>
+                </div>
+            </section>
+
+            <!-- 右パネル：ビュー & 情報 -->
+            <section class="view-panel">
+                <!-- タブ -->
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="3d">3D ビュー</button>
+                    <button class="tab-btn" data-tab="top">俯瞰図</button>
+                    <button class="tab-btn" data-tab="side">側面図</button>
+                    <button class="tab-btn" data-tab="materials">アイテム</button>
+                    <button class="tab-btn" data-tab="instructions">手順</button>
+                </div>
+
+                <!-- 3D ビュー -->
+                <div id="3d-view" class="tab-content active">
+                    <div class="canvas-wrapper">
+                        <canvas id="renderCanvas" width="600" height="400"></canvas>
+                    </div>
+
+                    <!-- ビューコントロール -->
+                    <div class="view-controls">
+                        <div class="control-group">
+                            <label>ビュー操作</label>
+                            <div class="button-group-small">
+                                <button id="rotateLeftBtn" class="btn btn-small">↻ 左回転</button>
+                                <button id="rotateRightBtn" class="btn btn-small">↺ 右回転</button>
+                                <button id="zoomInBtn" class="btn btn-small">🔍+ ズームイン</button>
+                                <button id="zoomOutBtn" class="btn btn-small">🔍- ズームアウト</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 俯瞰図 -->
+                <div id="top-view" class="tab-content">
+                    <div class="canvas-wrapper">
+                        <canvas id="topViewCanvas" width="600" height="400"></canvas>
+                    </div>
+                    <div class="legend">
+                        <span class="legend-item"><span class="legend-color" style="background: #3498db;"></span>ピストン</span>
+                        <span class="legend-item"><span class="legend-color" style="background: #f39c12;"></span>リピーター</span>
+                        <span class="legend-item"><span class="legend-color" style="background: #e74c3c;"></span>レッドストーン</span>
+                    </div>
+                </div>
+
+                <!-- 側面図 -->
+                <div id="side-view" class="tab-content">
+                    <div class="canvas-wrapper">
+                        <canvas id="sideViewCanvas" width="600" height="400"></canvas>
+                    </div>
+                    <div class="legend">
+                        <span class="legend-item"><span class="legend-color" style="background: rgba(231, 76, 60, 0.4);"></span>掘り下げエリア</span>
+                        <span class="legend-item"><span class="legend-color" style="background: rgba(46, 204, 113, 0.4);"></span>積み上げエリア</span>
+                    </div>
+                </div>
+
+                <!-- 必要アイテム -->
+                <div id="materials-view" class="tab-content">
+                    <div id="materialsList" class="info-content">
+                        <p>設計図を生成してください</p>
+                    </div>
+                    <button id="copyMaterialsBtn" class="btn btn-primary" style="display: none; margin-top: 10px;">📋 アイテムリストをコピー</button>
+                </div>
+
+                <!-- 組み立て手順 -->
+                <div id="instructions-view" class="tab-content">
+                    <div id="instructionsList" class="info-content">
+                        <p>設計図を生成してください</p>
+                    </div>
+                    <button id="downloadInstructionsBtn" class="btn btn-primary" style="display: none; margin-top: 10px;">📄 手順を PDF で保存</button>
+                </div>
+            </section>
+        </main>
+
+        <!-- エクスポート -->
+        <section class="export-section">
+            <h2>💾 設計図をエクスポート</h2>
+            <div class="export-buttons">
+                <button id="copyToClipboardBtn" class="btn btn-success" style="display: none;">📋 設定をコピー</button>
+                <button id="downloadImageBtn" class="btn btn-info" style="display: none;">🖼️ 画像として保存</button>
+            </div>
+        </section>
+
+        <!-- フッター -->
+        <footer class="footer">
+            <div class="footer-content">
+                <h3>📚 使い方</h3>
+                <ol>
+                    <li>左パネルで座標と設定を入力</li>
+                    <li>「設計図を生成」をクリック</li>
+                    <li>右パネルで 3 つのビューから回路を確認</li>
+                    <li>必要なアイテムと手順を確認</li>
+                    <li>マインクラフトで Redstone 回路を構築</li>
+                    <li>レバーを引いて実行！</li>
+                </ol>
+
+                <h3>⚠️ 重要な注意</h3>
+                <ul>
+                    <li>✅ このツールは Realms で安全に使用できます</li>
+                    <li>✅ コマンドを使用していません（100% Redstone 回路）</li>
+                    <li>⚠️ 大規模な範囲は小分けにして実行してください</li>
+                    <li>⚠️ テスト実行前に十分なセーブポイントを作成してください</li>
+                    <li>⚠️ サーバー負荷を考慮してスピードを設定してください</li>
+                </ul>
+
+                <h3>🔗 リンク</h3>
+                <ul>
+                    <li><a href="https://github.com/kumanekoking/redstone-terrain-designe" target="_blank">🐙 GitHub リポジトリ</a></li>
+                    <li><a href="https://minecraft.net" target="_blank">🎮 Minecraft 公式</a></li>
+                </ul>
+
+                <p class="footer-credit">
+                    <strong>Redstone Terrain Designer</strong><br>
+                    Made with ❤️ for Minecraft Education<br>
+                    <small>Minecraft は Microsoft/Mojang の商標です</small>
+                </p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
